@@ -17,7 +17,7 @@ export default function Home(props) {
       <Layout preview={true}>
         <hr />
         <div>
-       <div dangerouslySetInnerHTML={{__html:body.text}}></div>
+       <div dangerouslySetInnerHTML={{__html:body?.text}}></div>
       </div>
       </Layout>
       <div className=""></div>
