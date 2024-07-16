@@ -25,7 +25,7 @@ export default function Home(props) {
   );
 }
 
-export async function getStaticProps({ preview = false }) {
+export async function getStaticProps({params, preview = false }) {
   const data = await getLegacyLegalAgreementsAndMoreLegacyAgreements(params.slug, preview);
 
   return {
