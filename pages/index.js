@@ -1,9 +1,8 @@
 import Head from "next/head";
 import _ from "lodash";
 import Layout from "../components/layout";
-import { getAllPostsForHome, getAllLocales } from "../util/api";
-import HeroPost from "../components/heroPost";
-import MorePosts from "../components/morePosts";
+import { getAllLegacyLegalAgreementBySlug, getLegacyLegalAgreementsAndMoreLegacyAgreements } from "../../util/api";
+
 
 import dayjs from "dayjs";
 let advancedFormat = require("dayjs/plugin/advancedFormat");
