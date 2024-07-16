@@ -88,7 +88,7 @@ const { writeFileSync } = require("fs");
           `delivery_token: '${accessToken}',`,
           `preview_token: '${previewToken}',`,
           `previewSecret: '${previewSecret}',`,
-          `environment: 'test-json-poc'`,
+          `environment: 'master'`,
           `}`,
         ].join("\n") + "\n";
 
