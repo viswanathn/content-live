@@ -18,7 +18,8 @@ const LegacyLegalAgreement = (props) => {
   return (
     <div>
       <div style={{background:'cornflowerblue',height:'100px',fontSize:'30px'}}>Content Live </div>
-       Field: Body<div dangerouslySetInnerHTML={{__html:body?.text}}></div>
+       <div style={{fontSize:'20px'}}>Field: Body</div>
+       <div dangerouslySetInnerHTML={{__html:body?.text}} style={{paddingLeft:'80px',paddingRight:'80px',paddingTop:'80px'}}></div>
       </div>
        
   );
