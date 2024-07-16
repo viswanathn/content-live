@@ -1,7 +1,7 @@
 import Head from "next/head";
 import _ from "lodash";
 import Layout from "../components/layout";
-import { getAllLegacyLegalAgreementBySlug, getLegacyLegalAgreementsAndMoreLegacyAgreements } from "../../util/api";
+import { getAllLegacyLegalAgreementBySlug, getLegacyLegalAgreementsAndMoreLegacyAgreements } from "../util/api";
 
 
 import dayjs from "dayjs";
