@@ -13,12 +13,8 @@ const getOptions = (is_preview) => {
   let space_id = "";
   let access_token = "";
   options.space = space_id ? space_id : config.space_id;
-  options.host = is_preview ? "preview.contentful.com" : undefined;
-  options.accessToken = access_token
-    ? access_token
-    : is_preview
-    ? config.preview_token
-    : config.delivery_token;
+  options.host =  "preview.contentful.com";
+  options.accessToken = config.preview_token
   options.environment = config.environment ? config.environment : "demo";
   return options;
 };
@@ -93,6 +89,105 @@ export const getPreviewPostBySlug = async (slug) => {
 
   return posts;
 };
+
+export const getLegacyLegalAgreementBySlug = async (slug) => {
+  const options = getOptions(true);
+  const contentfulClient = contentful.createClient(options);
+
+  let legacyLegalAgreements = await contentfulClient
+    .getEntries({
+      content_type: "legacyLegalAgreements",
+      "fields.slug": slug,
+    })
+    .then((entries) => {
+      let dataType = _.get(entries, "sys.type");
+      let fields = _.get(entries, "items[0].fields");
+
+      return fields;
+    })
+    .catch((er) => {
+      console.log("ERROR", er);
+      return false;
+    });
+
+  return legacyLegalAgreements;
+};
+
+export const getAllLegacyLegalAgreementBySlug = async (preview) => {
+  const options = getOptions(preview);
+  const contentfulClient = contentful.createClient(options);
+
+  let pages = await contentfulClient
+    .getEntries({
+      content_type: "legacyLegalAgreements",
+    })
+    .then((entries) => {
+      let items = _.get(entries, "items");
+
+      const itemsWithSlug = items.filter((entry) => {
+        const slugVal = _.get(entry, "fields.slug");
+        if (slugVal) {
+          return entry;
+        }
+      });
+
+      if (itemsWithSlug) {
+        return itemsWithSlug;
+      } else {
+        return false;
+      }
+    })
+    .catch((er) => {
+      console.log("ERROR", er);
+      return false;
+    });
+
+  return pages;
+};
+
+
+export const getLegacyLegalAgreementsAndMoreLegacyAgreements = async (slug, preview) => {
+  const options = getOptions(preview);
+
+  const contentfulClient = contentful.createClient(options);
+
+  let legacyLegalAgreements = await contentfulClient
+    .getEntries({
+      content_type: "legacyLegalAgreements",
+    })
+    .then((entries) => {
+      let items = _.get(entries, "items");
+      //   item that matches the provided slug
+      const itemsWithThisSlug = items.filter((entry) => {
+        const fields = _.get(entry, "fields");
+        const slugVal = _.get(entry, "fields.slug");
+
+        if (slugVal === slug) {
+          return fields;
+        }
+      });
+      //   all others -> morePosts
+      const itemsWithoutThisSlug = items.filter((entry) => {
+        const slugVal = _.get(entry, "fields.slug");
+        if (slugVal != slug) {
+          return entry;
+        }
+      });
+
+      return {
+        legacyLegalAgreement: itemsWithThisSlug,
+        moreLegacyLegalAgreements: itemsWithoutThisSlug,
+      };
+    })
+    .catch((er) => {
+      console.log("ERROR", er);
+      return false;
+    });
+
+  return legacyLegalAgreements;
+};
+
+
 
 // posts with slug
 // @param: boolean
