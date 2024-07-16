@@ -32,10 +32,7 @@ yarn-error.log*
 
 # secrets
 .contentful.json
-.env*
-!.env.example
-.env
-config.js
+
 
 # vercel
 .vercel
