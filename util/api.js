@@ -31,6 +31,78 @@ export const getAllLocales = async () => {
   }
 };
 
+export const getAllPostsWithSlug = async (preview) => {
+  const options = getOptions(preview);
+  const contentfulClient = contentful.createClient(options);
+
+  let pages = await contentfulClient
+    .getEntries({
+      content_type: "post",
+    })
+    .then((entries) => {
+      let items = _.get(entries, "items");
+
+      const itemsWithSlug = items.filter((entry) => {
+        const slugVal = _.get(entry, "fields.slug");
+        if (slugVal) {
+          return entry;
+        }
+      });
+
+      if (itemsWithSlug) {
+        return itemsWithSlug;
+      } else {
+        return false;
+      }
+    })
+    .catch((er) => {
+      console.log("ERROR", er);
+      return false;
+    });
+
+  return pages;
+  }
+
+  export const getPostAndMorePosts = async (slug, preview) => {
+    const options = getOptions(preview);
+  
+    const contentfulClient = contentful.createClient(options);
+  
+    let posts = await contentfulClient
+      .getEntries({
+        content_type: "post",
+      })
+      .then((entries) => {
+        let items = _.get(entries, "items");
+        //   item that matches the provided slug
+        const itemsWithThisSlug = items.filter((entry) => {
+          const fields = _.get(entry, "fields");
+          const slugVal = _.get(entry, "fields.slug");
+  
+          if (slugVal === slug) {
+            return fields;
+          }
+        });
+        //   all others -> morePosts
+        const itemsWithoutThisSlug = items.filter((entry) => {
+          const slugVal = _.get(entry, "fields.slug");
+          if (slugVal != slug) {
+            return entry;
+          }
+        });
+  
+        return {
+          post: itemsWithThisSlug,
+          morePosts: itemsWithoutThisSlug,
+        };
+      })
+      .catch((er) => {
+        console.log("ERROR", er);
+        return false;
+      });
+  
+    return posts;
+  }
 export const getBodyRegionBySid = async (sid, contentType) => {
   const options = getOptions(true);
   const contentfulClient = contentful.createClient(options);
