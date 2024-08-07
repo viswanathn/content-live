@@ -1,21 +1,14 @@
 import * as contentful from "contentful";
 import _ from "lodash";
 
-import config from "../components/config";
-
-// const TEST_IMAGE_URL =
-//     "https://images.ctfassets.net/34zhepmq2vpx/4ClyFr0XGwcOiKUMyyiMKO/c47e029fa790bf3c01b8900bd6cacf87/TWD_Test_Image6.png";
-
-//prepare options for contentful createClient, change host to preview API when in preview mode
 const getOptions = (is_preview) => {
-  let options = {};
+  let options = {
+    space: process.env.NEXT_PUBLIC_space_id || '',
+    accessToken: process.env.NEXT_PUBLIC_preview_token || '',
+    host: "preview.contentful.com",
+    environment: process.env.NEXT_PUBLIC_environment || ''
+  };
 
-  let space_id = "";
-  let access_token = "";
-  options.space = space_id ? space_id : config.space_id;
-  options.host =  "preview.contentful.com";
-  options.accessToken = config.preview_token
-  options.environment = config.environment ? config.environment : "demo";
   return options;
 };
 
@@ -23,243 +16,188 @@ export const getAllLocales = async () => {
   const options = getOptions(false);
   const contentfulClient = contentful.createClient(options);
 
-  let loca = await contentfulClient
-    .getLocales()
-    .then((locales) => {
-      let dataType = _.get(locales, "sys.type");
-      let items = _.get(locales, "items");
-      if (dataType === "Array") {
-        return items;
-      } else {
-        return false;
-      }
-    })
-    .catch((er) => {
-      console.log("Error LOCALES", er);
+  try {
+    const locales = await contentfulClient.getLocales();
+    const dataType = _.get(locales, "sys.type");
+    const items = _.get(locales, "items");
+    if (dataType === "Array") {
+      return items;
+    } else {
       return false;
-    });
+    }
+  } catch (er) {
+    console.log("Error LOCALES", er);
+    return false;
+  }
 };
 
-export const getAllPostsForHome = async (preview) => {
-  const options = getOptions(preview);
-  const contentfulClient = contentful.createClient(options);
-
-  let posts = await contentfulClient
-    .getEntries({
-      content_type: "post",
-    })
-    .then((entries) => {
-      console.log("PAGES", entries);
-      let dataType = _.get(entries, "sys.type");
-      let items = _.get(entries, "items");
-
-      if (items) {
-        return items;
-      } else {
-        return false;
-      }
-    })
-    .catch((er) => {
-      console.log("ERROR", er);
-      return false;
-    });
-
-  return posts;
-};
-
-export const getPreviewPostBySlug = async (slug) => {
+export const getBodyRegionBySid = async (sid, contentType) => {
   const options = getOptions(true);
   const contentfulClient = contentful.createClient(options);
 
-  let posts = await contentfulClient
-    .getEntries({
-      content_type: "post",
-      "fields.slug": slug,
-    })
-    .then((entries) => {
-      let dataType = _.get(entries, "sys.type");
-      let fields = _.get(entries, "items[0].fields");
-
-      return fields;
-    })
-    .catch((er) => {
-      console.log("ERROR", er);
-      return false;
+  try {
+    const entries = await contentfulClient.getEntries({
+      content_type: contentType,
+      "fields.title": sid,
+      locale: "en-US"
     });
+    console.log(entries)
+    const dataType = _.get(entries, "sys.type");
+    const fields = _.get(entries, "items[0].fields");
 
-  return posts;
+    return fields;
+  } catch (er) {
+    console.log("ERROR", er);
+    return false;
+  }
 };
 
 export const getLegacyLegalAgreementBySlug = async (slug) => {
   const options = getOptions(true);
   const contentfulClient = contentful.createClient(options);
 
-  let legacyLegalAgreements = await contentfulClient
-    .getEntries({
+  try {
+    const entries = await contentfulClient.getEntries({
       content_type: "legacyLegalAgreements",
       "fields.slug": slug,
-    })
-    .then((entries) => {
-      let dataType = _.get(entries, "sys.type");
-      let fields = _.get(entries, "items[0].fields");
+    });
+    const dataType = _.get(entries, "sys.type");
+    const fields = _.get(entries, "items[0].fields");
 
-      return fields;
-    })
-    .catch((er) => {
-      console.log("ERROR", er);
-      return false;
+    return fields;
+  } catch (er) {
+    console.log("ERROR", er);
+    return false;
+  }
+};
+
+export const getAllRegionsBySlug = async () => {
+  const options = getOptions(false);
+  const contentfulClient = contentful.createClient(options);
+
+  try {
+    const entries = await contentfulClient.getEntries({
+      content_type: 'bodyAfricaCaribbeanAndOceaniaRegions',
+      locale: 'en-US'
+    });
+    const items = _.get(entries, "items");
+
+    const itemsWithSlug = items.filter((entry) => {
+      const slugVal = _.get(entry, "fields.title");
+      if (slugVal) {
+        return entry;
+      }
     });
 
-  return legacyLegalAgreements;
+    if (itemsWithSlug) {
+      return itemsWithSlug;
+    } else {
+      return false;
+    }
+  } catch (er) {
+    console.log("ERROR", er);
+    return false;
+  }
 };
 
 export const getAllLegacyLegalAgreementBySlug = async (preview) => {
   const options = getOptions(preview);
   const contentfulClient = contentful.createClient(options);
 
-  let pages = await contentfulClient
-    .getEntries({
+  try {
+    const entries = await contentfulClient.getEntries({
       content_type: "legacyLegalAgreements",
-    })
-    .then((entries) => {
-      let items = _.get(entries, "items");
+    });
+    const items = _.get(entries, "items");
 
-      const itemsWithSlug = items.filter((entry) => {
-        const slugVal = _.get(entry, "fields.slug");
-        if (slugVal) {
-          return entry;
-        }
-      });
-
-      if (itemsWithSlug) {
-        return itemsWithSlug;
-      } else {
-        return false;
+    const itemsWithSlug = items.filter((entry) => {
+      const slugVal = _.get(entry, "fields.slug");
+      if (slugVal) {
+        return entry;
       }
-    })
-    .catch((er) => {
-      console.log("ERROR", er);
-      return false;
     });
 
-  return pages;
+    if (itemsWithSlug) {
+      return itemsWithSlug;
+    } else {
+      return false;
+    }
+  } catch (er) {
+    console.log("ERROR", er);
+    return false;
+  }
 };
 
+export const getRegionsAndMoreRegions = async (sid, contentType, locale) => {
+  const options = getOptions(false);
+  const contentfulClient = contentful.createClient(options);
+
+  try {
+    const entries = await contentfulClient.getEntries({
+      content_type: contentType,
+      locale: locale
+    });
+    const items = _.get(entries, "items");
+
+    const itemsWithThisSlug = items.filter((entry) => {
+      const fields = _.get(entry, "fields");
+      const slugVal = _.get(entry, "fields.title");
+
+      if (slugVal === sid) {
+        return fields;
+      }
+    });
+
+    const itemsWithoutThisSlug = items.filter((entry) => {
+      const slugVal = _.get(entry, "fields.title");
+      if (slugVal != sid) {
+        return entry;
+      }
+    });
+
+    return {
+      regions: itemsWithThisSlug,
+      moreRegions: itemsWithoutThisSlug,
+    };
+  } catch (er) {
+    console.log("ERROR", er);
+    return false;
+  }
+};
 
 export const getLegacyLegalAgreementsAndMoreLegacyAgreements = async (slug, preview) => {
   const options = getOptions(preview);
-
   const contentfulClient = contentful.createClient(options);
 
-  let legacyLegalAgreements = await contentfulClient
-    .getEntries({
+  try {
+    const entries = await contentfulClient.getEntries({
       content_type: "legacyLegalAgreements",
-    })
-    .then((entries) => {
-      let items = _.get(entries, "items");
-      //   item that matches the provided slug
-      const itemsWithThisSlug = items.filter((entry) => {
-        const fields = _.get(entry, "fields");
-        const slugVal = _.get(entry, "fields.slug");
-
-        if (slugVal === slug) {
-          return fields;
-        }
-      });
-      //   all others -> morePosts
-      const itemsWithoutThisSlug = items.filter((entry) => {
-        const slugVal = _.get(entry, "fields.slug");
-        if (slugVal != slug) {
-          return entry;
-        }
-      });
-
-      return {
-        legacyLegalAgreement: itemsWithThisSlug,
-        moreLegacyLegalAgreements: itemsWithoutThisSlug,
-      };
-    })
-    .catch((er) => {
-      console.log("ERROR", er);
-      return false;
     });
+    const items = _.get(entries, "items");
 
-  return legacyLegalAgreements;
-};
+    const itemsWithThisSlug = items.filter((entry) => {
+      const fields = _.get(entry, "fields");
+      const slugVal = _.get(entry, "fields.slug");
 
-
-
-// posts with slug
-// @param: boolean
-export const getAllPostsWithSlug = async (preview) => {
-  const options = getOptions(preview);
-  const contentfulClient = contentful.createClient(options);
-
-  let pages = await contentfulClient
-    .getEntries({
-      content_type: "post",
-    })
-    .then((entries) => {
-      let items = _.get(entries, "items");
-
-      const itemsWithSlug = items.filter((entry) => {
-        const slugVal = _.get(entry, "fields.slug");
-        if (slugVal) {
-          return entry;
-        }
-      });
-
-      if (itemsWithSlug) {
-        return itemsWithSlug;
-      } else {
-        return false;
+      if (slugVal === slug) {
+        return fields;
       }
-    })
-    .catch((er) => {
-      console.log("ERROR", er);
-      return false;
     });
 
-  return pages;
-};
-
-export const getPostAndMorePosts = async (slug, preview) => {
-  const options = getOptions(preview);
-
-  const contentfulClient = contentful.createClient(options);
-
-  let posts = await contentfulClient
-    .getEntries({
-      content_type: "post",
-    })
-    .then((entries) => {
-      let items = _.get(entries, "items");
-      //   item that matches the provided slug
-      const itemsWithThisSlug = items.filter((entry) => {
-        const fields = _.get(entry, "fields");
-        const slugVal = _.get(entry, "fields.slug");
-
-        if (slugVal === slug) {
-          return fields;
-        }
-      });
-      //   all others -> morePosts
-      const itemsWithoutThisSlug = items.filter((entry) => {
-        const slugVal = _.get(entry, "fields.slug");
-        if (slugVal != slug) {
-          return entry;
-        }
-      });
-
-      return {
-        post: itemsWithThisSlug,
-        morePosts: itemsWithoutThisSlug,
-      };
-    })
-    .catch((er) => {
-      console.log("ERROR", er);
-      return false;
+    const itemsWithoutThisSlug = items.filter((entry) => {
+      const slugVal = _.get(entry, "fields.slug");
+      if (slugVal != slug) {
+        return entry;
+      }
     });
 
-  return posts;
+    return {
+      legacyLegalAgreement: itemsWithThisSlug,
+      moreLegacyLegalAgreements: itemsWithoutThisSlug,
+    };
+  } catch (er) {
+    console.log("ERROR", er);
+    return false;
+  }
 };
+  
